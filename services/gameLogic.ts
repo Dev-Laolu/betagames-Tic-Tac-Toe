@@ -23,6 +23,26 @@ export const LEVEL_THRESHOLDS: { label: Difficulty; score: number }[] = [
 ];
 
 /**
+ * // Probability of making a random move instead of a smart move (0.0 to 1.0)
+ * // Higher value = more frequent mistakes (random moves)
+ */
+const MISTAKE_RATES: Record<Difficulty, number> = {
+  'Easy': 1.0,         
+  'Average': 0.3,      
+  'Advanced': 0.15,    
+  'Superstar': 0.1,     
+  'Elite': 0.05,       
+  'Strategist': 0.03,  
+  'Grandmaster': 0.01, 
+  'Warlord': 0,        
+  'Titan': 0,
+  'Legend': 0,
+  'Immortal': 0,
+  'Ascendant': 0,
+  'Demigod': 0,
+};
+
+/**
  * // Returns the Difficulty level based on the current score.
  * // Iterates through thresholds to find the highest matched rank.
  */
@@ -90,12 +110,14 @@ export const getEasyMove = (squares: Player[]): number => {
  * // Aims to maximize the AI's score and minimize the opponent's.
  */
 export const getAdvancedMove = (squares: Player[], aiSymbol: Player, difficulty: Difficulty = 'Advanced'): number => {
-  // Average difficulty logic: 30% chance of a random move, 70% chance of an optimal move
-  if (difficulty === 'Average') {
-    if (Math.random() < 0.3) {
-      return getEasyMove(squares);
-    }
+  // 1. Get the mistake rate for the current difficulty
+  const mistakeRate = MISTAKE_RATES[difficulty] ?? 0.15;
+
+  // 2. Decide: Random move OR Smart move based on probability
+  if (Math.random() < mistakeRate) {
+    return getEasyMove(squares);
   }
+
 
   let bestScore = -Infinity;
   let move = -1;
