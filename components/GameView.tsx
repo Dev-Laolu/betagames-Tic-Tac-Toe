@@ -120,8 +120,7 @@ const GameView: React.FC<GameViewProps> = ({ user, player2, gameMode, userSymbol
       const thinkTime = 80 + Math.random() * 70;
       
       const timer = setTimeout(() => {
-        // // Decide on the best move based on current difficulty level
-        const aiMove = effectiveDifficulty === 'Easy' ? getEasyMove(board) : getAdvancedMove(board, aiSymbol);
+        const aiMove = effectiveDifficulty === 'Easy' ? getEasyMove(board) : getAdvancedMove(board, aiSymbol, effectiveDifficulty);
         
         // // Safety check: if no valid move is returned, abort
         if (aiMove === undefined || aiMove === -1) {
@@ -312,7 +311,13 @@ const GameView: React.FC<GameViewProps> = ({ user, player2, gameMode, userSymbol
                </h2>
                
                <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mb-10">
-                 {status === GameStatus.DRAW ? "+20 POINTS FOR ALL" : "+100 POINTS AWARDED"}
+                 {status === GameStatus.DRAW 
+                   ? "+20 POINTS FOR ALL" 
+                   : (gameMode === 'Single Player' 
+                      ? (winner === userSymbol 
+                        ? "POINTS AWARDED" 
+                        : "POINTS DEDUCTED") 
+                      : "+100 POINTS AWARDED")}
                </p>
 
                {/* // Action Buttons Post-Game */}

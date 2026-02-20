@@ -18,6 +18,7 @@ export const LEVEL_THRESHOLDS: { label: Difficulty; score: number }[] = [
   { label: 'Elite', score: 2000 },
   { label: 'Superstar', score: 1500 },
   { label: 'Advanced', score: 500 },
+  { label: 'Average', score: 250 },
   { label: 'Easy', score: 0 },
 ];
 
@@ -28,6 +29,17 @@ export const LEVEL_THRESHOLDS: { label: Difficulty; score: number }[] = [
 export const getLevel = (score: number): Difficulty => {
   const level = LEVEL_THRESHOLDS.find((threshold) => score >= threshold.score);
   return level ? level.label : 'Easy';
+};
+
+/**
+ * // Returns points awarded for a win based on the current level.
+ */
+export const getPointsForWin = (score: number): number => {
+  const level = getLevel(score);
+  if (LEVEL_THRESHOLDS.findIndex(t => t.label === 'Ascendant') >= LEVEL_THRESHOLDS.findIndex(t => t.label === level)) return 300;
+  if (LEVEL_THRESHOLDS.findIndex(t => t.label === 'Grandmaster') >= LEVEL_THRESHOLDS.findIndex(t => t.label === level)) return 200;
+  if (LEVEL_THRESHOLDS.findIndex(t => t.label === 'Elite') >= LEVEL_THRESHOLDS.findIndex(t => t.label === level)) return 150;
+  return 100;
 };
 /**
  * // Calculates the winner of the Tic-Tac-Toe game.
@@ -77,7 +89,14 @@ export const getEasyMove = (squares: Player[]): number => {
  * // ADVANCED AI: Logic for making an optimal move using the Minimax Algorithm.
  * // Aims to maximize the AI's score and minimize the opponent's.
  */
-export const getAdvancedMove = (squares: Player[], aiSymbol: Player): number => {
+export const getAdvancedMove = (squares: Player[], aiSymbol: Player, difficulty: Difficulty = 'Advanced'): number => {
+  // Average difficulty logic: 30% chance of a random move, 70% chance of an optimal move
+  if (difficulty === 'Average') {
+    if (Math.random() < 0.3) {
+      return getEasyMove(squares);
+    }
+  }
+
   let bestScore = -Infinity;
   let move = -1;
   // // Create a copy of the current board state

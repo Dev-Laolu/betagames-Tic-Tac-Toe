@@ -11,7 +11,7 @@ import ModeSelection from './components/ModeSelection';
 import PlayerSelection from './components/PlayerSelection';
 import SymbolSelection from './components/SymbolSelection';
 import { User, GameMode, Difficulty, GameSymbol } from './types';
-import { getLevel } from './services/gameLogic';
+import { getLevel, getPointsForWin } from './services/gameLogic';
 
 // // Level-based penalty system for AI defeats
 const getPenaltyForLevel = (level: Difficulty): number => {
@@ -19,15 +19,16 @@ const getPenaltyForLevel = (level: Difficulty): number => {
     'Demigod': -200,
     'Ascendant': -150,
     'Immortal': -100,
-    'Legend': -50,
-    'Titan': -50,
-    'Warlord': -50,
-    'Grandmaster': -50,
+    'Legend': -90,
+    'Titan': -80,
+    'Warlord': -70,
+    'Grandmaster': -60,
     'Strategist': -50,
-    'Elite': -50,
-    'Superstar': -50,
+    'Elite': -40,
+    'Superstar': -30,
     'Advanced': -20,
-    'Easy': -20,
+    'Average': -20,
+    'Easy': -10,
   };
   return penalties[level] || -20;
 };
@@ -180,12 +181,71 @@ const App: React.FC = () => {
           userSymbol={selectedSymbol}
           onScoreChange={(points, targetUser) => {
             const userToUpdate = targetUser || currentUser;
-            // // Apply level-based penalty for AI defeats
             let adjustedPoints = points;
-            if (points < 0 && gameMode === 'Single Player') {
-              const currentLevel = getLevel(userToUpdate.score);
-              adjustedPoints = getPenaltyForLevel(currentLevel);
+            
+            // Single Player specific logic: Point Bonuses & Dynamic Difficulty
+            if (gameMode === 'Single Player' && !targetUser) {
+              if (points > 0 && points !== 20) {
+                // Win: Use bonus points based on level
+                adjustedPoints = getPointsForWin(userToUpdate.score);
+                
+                // Reset difficulty trackers on win
+                handleUpdateUser(userToUpdate, { 
+                  score: userToUpdate.score + adjustedPoints,
+                  lossesCount: 0,
+                  drawsCount: 0
+                });
+                return;
+              } else if (points < 0) {
+                // Loss: Calculate level-based penalty
+                const currentLevel = getLevel(userToUpdate.score);
+                adjustedPoints = getPenaltyForLevel(currentLevel);
+                
+                // Update loss count and check for difficulty downgrade
+                const newLossesCount = (userToUpdate.lossesCount || 0) + 1;
+                const newDrawsCount = (userToUpdate.drawsCount || 0);
+                let newDifficulty = userToUpdate.preferredDifficulty;
+
+                if (newLossesCount >= 10) {
+                  newDifficulty = 'Easy';
+                } else if (newLossesCount + newDrawsCount >= 5) {
+                  newDifficulty = 'Easy';
+                } else if (newLossesCount + newDrawsCount >= 3) {
+                  if (newDifficulty !== 'Easy') {
+                    newDifficulty = 'Average';
+                  }
+                }
+
+                handleUpdateUser(userToUpdate, { 
+                  score: Math.max(0, userToUpdate.score + adjustedPoints),
+                  lossesCount: newLossesCount,
+                  preferredDifficulty: newDifficulty
+                });
+                return;
+              } else if (points === 20) {
+                // Draw logic for single player
+                const newLossesCount = (userToUpdate.lossesCount || 0);
+                const newDrawsCount = (userToUpdate.drawsCount || 0) + 1;
+                let newDifficulty = userToUpdate.preferredDifficulty;
+
+                if (newLossesCount + newDrawsCount >= 5) {
+                   newDifficulty = 'Easy';
+                } else if (newLossesCount + newDrawsCount >= 3) {
+                   if (newDifficulty !== 'Easy') {
+                     newDifficulty = 'Average';
+                   }
+                }
+
+                handleUpdateUser(userToUpdate, { 
+                  score: userToUpdate.score + 20,
+                  drawsCount: newDrawsCount,
+                  preferredDifficulty: newDifficulty
+                });
+                return;
+              }
             }
+
+            // Normal PvP or fallback
             handleUpdateUser(userToUpdate, { score: Math.max(0, userToUpdate.score + adjustedPoints) });
           }} 
           onBackToMenu={handleBackFromGame}

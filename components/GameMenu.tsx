@@ -124,10 +124,10 @@ const GameMenu: React.FC<GameMenuProps> = ({ user, onUpdateUser, onStartGame, on
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => onUpdateUser({ preferredDifficulty: 'Easy' })}
-                    className={`py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all ${user.preferredDifficulty === 'Easy' ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                    onClick={() => onUpdateUser({ preferredDifficulty: 'Average' })}
+                    className={`py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all ${user.preferredDifficulty === 'Average' ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
                   >
-                    Easy
+                    Average
                   </button>
                   <button
                     onClick={() => onUpdateUser({ preferredDifficulty: 'Advanced' })}
